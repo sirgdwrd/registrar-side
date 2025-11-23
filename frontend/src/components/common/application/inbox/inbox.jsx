@@ -14,7 +14,7 @@ const Inbox = ({ onProceedToScreening }) => {
   return (
     <>
       <InboxHeader />
-
+       {/* new comment */}
       {/* Pass filters state to the filter component */}
       <InboxFilter filtersState={filtersState} setFiltersState={setFiltersState} />
 
