@@ -13,6 +13,7 @@ const ApplicationTabs = () => {
     screening: [],
     review: [],
   });
+  // test
   // PRaaacticeee
   // Modal state with type
   const [confirmation, setConfirmation] = useState({
