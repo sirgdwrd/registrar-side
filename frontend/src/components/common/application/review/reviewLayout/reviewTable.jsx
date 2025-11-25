@@ -354,7 +354,7 @@ const confirmBulkAssign = async () => {
                             </td>
 
                             <td className="px-4 py-3 text-sm text-gray-800 dark:text-white font-medium">
-                                {a.lastName}, {a.firstName} {a.middleInitial || ""}
+                                {a.lastName}, {a.StudentFirstName} {a.middleInitial || ""}
                             </td>
 
                             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">

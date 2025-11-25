@@ -222,7 +222,7 @@ const ScreeningTable = ({ filterOptions = {}, onValidated }) => {
                     a.id
                   )}`}
                 >
-                  <td className="px-4 py-3 text-sm font-medium text-gray-800 dark:text-white">{`${a.lastName}, ${a.firstName} ${a.middleInitial}.`}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-800 dark:text-white">{`${a.lastName}, ${a.StudentFirstName} ${a.middleInitial}.`}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{a.studentType}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 break-words max-w-[200px]">
                     {requiredDocs.join(", ")}
