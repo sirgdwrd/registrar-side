@@ -195,13 +195,13 @@ const InboxTable = ({ filtersState = {}, onProceedToScreening }) => {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-800 dark:text-white font-medium">
-                    {applicant.StudentLastName}, {applicant.StudentFirstName} {applicant.StudentMiddleName}.
+                    {applicant.lastName}, {applicant.firstName} {applicant.middleInitial}.
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{applicant.EnrolleeType}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{applicant.ApplyingForGradeLevelID}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{applicant.SubmissionDate}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{applicant.studentType}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{applicant.grade}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{applicant.created_at}</td>
                   <td className="px-4 py-3 text-center">
-                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-300 text-black">{applicant.ApplicationStatus}</span>
+                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-300 text-black">{applicant.status}</span>
                   </td>
                   <td className="px-4 py-3 text-center relative">
                     <div className="relative flex flex-col items-center gap-2 group">

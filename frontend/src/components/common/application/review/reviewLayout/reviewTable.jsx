@@ -3,6 +3,7 @@ import SectionAssignmentModal from './table/sectionAssignmentModal';
 import TablePagination from './table/tablePagination';
 import SuccessToast from "../../../../ui/SuccessToast"; 
 import BulkSectionModal from "./table/BulkSectionModal";
+import StudentIDAssignmentModal from "./table/StudentIDAssignmentModal";
 
 const BASE_API = "http://localhost/registrar-gca-main/backend/api/applicants";
 const ReviewTable = ({ selectedFinalRows = [], toggleFinalRow = () => {}, statusUpdates = {}, triggerSectionUpdate = () => {} }) => {
@@ -15,7 +16,10 @@ const ReviewTable = ({ selectedFinalRows = [], toggleFinalRow = () => {}, status
     const [hoveredHeader, setHoveredHeader] = useState(false);
     const [selectedRows, setSelectedRows] = useState([]);
     const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
-
+    const [pendingSectionData, setPendingSectionData] = useState(null);
+    const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
+    const [studentForID, setStudentForID] = useState(null);
+ 
     // 💡 TOAST STATE 💡
     const [toast, setToast] = useState({
         isVisible: false,
@@ -127,35 +131,72 @@ const ReviewTable = ({ selectedFinalRows = [], toggleFinalRow = () => {}, status
     };
 
     // 🚀 API ACTION LOGIC, SINGLE SECTIONING
-    const handleSectionSave = async (applicantId, sectionId) => {
-        const assignedApplicant = applicants.find(a => a.id === applicantId); 
-        handleCloseModal();
-        setLoading(true);
+   const handleSectionSave = (applicantId, sectionId) => {
+    const applicant = applicants.find(a => a.id === applicantId);
+    // Store temporary values
+    setPendingSectionData({ applicantId, sectionId, applicant });
 
-        try {
-            const response = await fetch(`${BASE_API}/assignSection.php`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ applicantId, sectionId }),
+    // Close section modal
+    handleCloseModal();
+
+    // Open student ID modal
+    setStudentForID({
+        id: applicantId,
+        sectionId,
+        name: `${applicant.firstName} ${applicant.lastName}`
+    });
+    setIsStudentModalOpen(true);
+};
+
+const finalizeSectionAndStudentID = async (studentID) => {
+    try {
+        const response = await fetch(`${BASE_API}/assignSection.php`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                applicantId: pendingSectionData.applicantId,
+                sectionId: pendingSectionData.sectionId,
+                studentID
+            })
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            setToast({
+                isVisible: true,
+                message: `❌ ${result.message}`,
+                type: "error"
             });
-            const result = await response.json();
-            
-            if (result.success && assignedApplicant) {
-                setToast({
-                    isVisible: true,
-                    message: `${assignedApplicant.firstName} ${assignedApplicant.lastName} assigned successfully.`,
-                    type: 'success',
-                });
-                await fetchApplicants();
-                triggerSectionUpdate(); 
-            }
-            else throw new Error(result.message || "Server reported failure.");
-        } catch (error) {
-            setError(error.message);
-        } finally {
-            setLoading(false);
+            return;
         }
-    };
+
+        // --- Success ---
+        setToast({
+            isVisible: true,
+            message: "✅ Enrollment completed successfully!",
+            type: "success"
+        });
+
+        // Close modal
+        setIsStudentModalOpen(false);
+        setStudentForID(null);
+        setPendingSectionData(null);
+
+        // Refresh applicants table
+        await fetchApplicants();
+
+    } catch (err) {
+        setToast({
+            isVisible: true,
+            message: `❌ Failed to enroll: ${err.message}`,
+            type: "error"
+        });
+    }
+};
+
+
+
 
     // 📢 BULK ACTION LOGIC 
    const handleAcceptAllQualified = () => {
@@ -354,7 +395,7 @@ const confirmBulkAssign = async () => {
                             </td>
 
                             <td className="px-4 py-3 text-sm text-gray-800 dark:text-white font-medium">
-                                {a.lastName}, {a.StudentFirstName} {a.middleInitial || ""}
+                                {a.lastName}, {a.firstName} {a.middleInitial || ""}
                             </td>
 
                             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
@@ -424,6 +465,13 @@ const confirmBulkAssign = async () => {
             onSave={handleSectionSave}
             options={sectionOptions}
         />
+        <StudentIDAssignmentModal
+    student={studentForID}
+    isOpen={isStudentModalOpen}
+    onClose={() => setIsStudentModalOpen(false)}
+    onConfirm={finalizeSectionAndStudentID}
+/>
+
         {/* Bulk Sectioning Modal */}
         <BulkSectionModal
     isOpen={isBulkModalOpen}

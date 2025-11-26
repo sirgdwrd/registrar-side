@@ -12,68 +12,92 @@ $conn = $db->getConnection();
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-if (!isset($data['applicantId']) || !isset($data['sectionId'])) {
+if (
+    !isset($data['applicantId']) || 
+    !isset($data['sectionId']) || 
+    !isset($data['studentID'])
+) {
     echo json_encode([
         "success" => false,
-        "message" => "Missing applicantId or sectionId"
+        "message" => "Missing required fields: applicantId, sectionId, studentID"
     ]);
     exit;
 }
 
 $ApplicationID = intval($data['applicantId']);
-$SectionID = intval($data['sectionId']); 
+$SectionID = intval($data['sectionId']);
+$StudentNumber = trim($data['studentID']);
 
-// --- Check section capacity ---
-$sectionQuery = $conn->prepare("SELECT CurrentEnrollment, MaxCapacity FROM section WHERE SectionID = ?");
-$sectionQuery->execute([$SectionID]);
-$section = $sectionQuery->fetch(PDO::FETCH_ASSOC);
-
-if (!$section) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Section does not exist"
-    ]);
-    exit;
-}
-
-if ($section['CurrentEnrollment'] >= $section['MaxCapacity']) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Section is full"
-    ]);
-    exit;
-}
-
-// --- Transaction to assign section ---
 try {
     $conn->beginTransaction();
 
-    // Update applicant status and assign section
-    $updateApplicant = $conn->prepare("
-        UPDATE application 
-        SET ApplicationStatus = 'Enrolling'
+    // --- Get applicant info ---
+    $appQ = $conn->prepare("
+        SELECT ApplicantProfileID, SchoolYearID
+        FROM application
         WHERE ApplicationID = ?
     ");
-    $updateApplicant->execute([$ApplicationID]);
+    $appQ->execute([$ApplicationID]);
+    $app = $appQ->fetch(PDO::FETCH_ASSOC);
 
-    // Increment section enrollment
+    if (!$app) {
+        throw new Exception("Applicant not found");
+    }
+
+    $ProfileID = $app['ApplicantProfileID'];
+    $schoolYear = $app['SchoolYearID'];
+
+    // --- Check section capacity ---
+    $sectionQuery = $conn->prepare("
+        SELECT CurrentEnrollment, MaxCapacity 
+        FROM section 
+        WHERE SectionID = ?
+    ");
+    $sectionQuery->execute([$SectionID]);
+    $section = $sectionQuery->fetch(PDO::FETCH_ASSOC);
+
+    if (!$section) throw new Exception("Section does not exist");
+
+    if ($section['CurrentEnrollment'] >= $section['MaxCapacity']) {
+        throw new Exception("Section is full");
+    }
+
+    // --- Update section enrollment ---
     $updateSection = $conn->prepare("
         UPDATE section
-        SET CurrentEnrollment = CurrentEnrollment + 1 
+        SET CurrentEnrollment = CurrentEnrollment + 1
         WHERE SectionID = ?
     ");
     $updateSection->execute([$SectionID]);
+
+    // --- Assign section in application table ---
+    $updateApplication = $conn->prepare("
+        UPDATE application
+        SET ApplicationStatus = 'Enrolled'
+        WHERE ApplicationID = ?
+    ");
+    $updateApplication->execute([$ApplicationID]);
+
+    // --- Update studentprofile with Student Number & Status ---
+    $updateStudentProfile = $conn->prepare("
+        UPDATE studentprofile
+        SET StudentNumber = ?, 
+            StudentStatus = 'Enrolled'
+        WHERE ProfileID = ?
+    ");
+    $updateStudentProfile->execute([$StudentNumber, $ProfileID]);
 
     $conn->commit();
 
     echo json_encode([
         "success" => true,
-        "message" => "Section assigned successfully."
+        "message" => "Section and Student ID assigned successfully."
     ]);
+
 } catch (Exception $e) {
     $conn->rollBack();
     echo json_encode([
         "success" => false,
-        "message" => "Failed to assign section: " . $e->getMessage()
+        "message" => "Failed to assign: " . $e->getMessage()
     ]);
 }

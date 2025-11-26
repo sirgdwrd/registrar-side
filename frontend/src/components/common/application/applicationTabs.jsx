@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import Inbox from "./inbox/inbox.jsx"; 
-import Screening from "./screening/screening.jsx"; 
-import Review from "./review/review.jsx"; 
+import Inbox from "./inbox/inbox.jsx";
+import Screening from "./screening/screening.jsx";
+import Review from "./review/review.jsx";
 
 const ApplicationTabs = () => {
   const [activeTab, setActiveTab] = useState("Inbox");
@@ -12,15 +12,6 @@ const ApplicationTabs = () => {
     inbox: [],
     screening: [],
     review: [],
-  });
-  // test
-  // PRaaacticeee
-  // Modal state with type
-  const [confirmation, setConfirmation] = useState({
-    show: false,
-    message: "",
-    onConfirm: null,
-    type: "check", // "check" | "arrow"
   });
 
   const tabs = [
@@ -41,13 +32,8 @@ const ApplicationTabs = () => {
       screening: [...prev.screening, applicant],
     }));
 
-    // Show confirmation modal with arrow animation
-    setConfirmation({
-      show: true,
-      message: "Applicant sent to screening successfully!",
-      onConfirm: () => setActiveTab("Screening"),
-      type: "arrow",
-    });
+    // Stay on the current tab (no tab switch)
+    // Just perform the action, and the page stays the same
   };
 
   // Screening → Review
@@ -58,13 +44,8 @@ const ApplicationTabs = () => {
       review: [...prev.review, updatedApplicant],
     }));
 
-    // Show confirmation modal with check animation
-    setConfirmation({
-      show: true,
-      message: "Applicant successfully validated!",
-      onConfirm: () => setActiveTab("Review"),
-      type: "check",
-    });
+    // Stay on the current tab (no tab switch)
+    // Just perform the action, and the page stays the same
   };
 
   // Tab renderer
@@ -83,7 +64,6 @@ const ApplicationTabs = () => {
 
   return (
     <>
-      {/* Inline keyframes */}
       <style>
         {`
           @keyframes slideDown {
@@ -91,14 +71,9 @@ const ApplicationTabs = () => {
             100% { transform: translateY(0); opacity: 1; }
           }
           .animate-slideDown { animation: slideDown 0.6s ease-out forwards; }
-
-          @keyframes drawCheck { to { stroke-dashoffset: 0; } }
-          @keyframes drawArrow { to { stroke-dashoffset: 0; } }
-          @keyframes drawArrowHead { to { stroke-dashoffset: 0; } }
         `}
       </style>
 
-      {/* Main Card */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-md w-full transition-colors duration-300">
         {/* Tabs */}
         <div className="flex gap-8 mb-6 relative">
@@ -135,97 +110,6 @@ const ApplicationTabs = () => {
         {/* Tab Content */}
         <div className="mt-4">{renderContent()}</div>
       </div>
-
-      {/* ✅ Confirmation Modal */}
-      {confirmation.show && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 w-[420px] text-center">
-            
-            {/* Conditional Modal Content */}
-            {confirmation.type === "check" ? (
-              <div className="flex flex-col items-center gap-4">
-                {/* Check Animation */}
-                <div className="w-24 h-24">
-                  <svg className="w-24 h-24 stroke-green-500" viewBox="0 0 52 52">
-                    <circle cx="26" cy="26" r="25" fill="none" stroke="#d1d5db" strokeWidth="2"/>
-                    <path
-                      color='green'
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M14 27l7 7 17-17"
-                      style={{ strokeDasharray: 50, strokeDashoffset: 50, animation: "drawCheck 0.6s forwards 0.3s" }}
-                    />
-                  </svg>
-                </div>
-                <p className="text-lg md:text-xl font-semibold text-gray-800 dark:text-white">
-                  {confirmation.message}
-                </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-gray-300">
-                  Do you want to go to the Sectioning and Final Review page?
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-4">
-               {/* Arrow Animation */}
-                   <div className="w-24 h-24">
-                      <svg className="w-24 h-24 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        {/* Line */}
-                        <line
-                          x1="4"
-                          y1="12"
-                          x2="20"
-                          y2="12"
-                          strokeWidth="3"
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          style={{ strokeDasharray: 16, strokeDashoffset: 16, animation: "drawArrow 0.2s forwards" }}
-                        />
-                        {/* Arrow Head */}
-                        <polyline
-                          points="14,6 20,12 14,18"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          style={{ strokeDasharray: 24, strokeDashoffset: 24, animation: "drawArrowHead 0.2s forwards 0.2s" }}
-                        />
-                      </svg>
-                    </div>
-                <p className="text-lg md:text-xl font-semibold text-gray-800 dark:text-white">
-                  {confirmation.message}
-                </p>
-                <p className="text-sm md:text-base text-gray-600 dark:text-gray-300">
-                  Proceed to Application Screening page?
-                </p>
-              </div>
-            )}
-
-            {/* Buttons */}
-            <div className="flex justify-center gap-4 mt-4">
-              <button
-                onClick={() => {
-                  setConfirmation({ show: false, message: "", onConfirm: null, type: "check" });
-                  confirmation.onConfirm && confirmation.onConfirm();
-                }}
-                className="px-6 py-2 rounded-lg bg-blue-600 text-white font-medium text-base hover:bg-blue-700 transition-all"
-              >
-                Yes
-              </button>
-              <button
-                onClick={() => setConfirmation({ show: false, message: "", onConfirm: null, type: "check" })}
-                className="px-6 py-2 rounded-lg bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white font-medium text-base hover:bg-gray-400 dark:hover:bg-gray-500 transition-all"
-              >
-                No
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
     </>
   );
 };
